@@ -79,12 +79,15 @@ def purchase_space(active_player):
     site_cost = board.site_cost[pos]
     bank = active_player.balance
     site_group = board.groups[pos]
+
     # ic(pos)
+    # ic(board.owner[pos])
     # ic(space_name)
     # ic(site_cost)
     # ic(bank)
     # ic(site_group)
     # ic(active_player.complete_set[site_group])
+    # ic(active_player.id)
 
     if board.owner[pos] == 'none':
         if VERBOSE: print(f"{active_player.name} with balance {bank} has option to buy {space_name} costing {site_cost}")
@@ -100,6 +103,11 @@ def purchase_space(active_player):
                 if VERBOSE: print(f"{active_player.name} is now the proud owner of {space_name}!")
                 # determine if ap holds set, update player class
                 active_player.site_colours[site_group] += 1
+
+                # ic("### check site has changed ownership ####")
+                # ic(board.owner[pos])
+                # ic(active_player.id)
+                # input("### puchase site ###")
 
                 # check player holds set
                 if site_group in ['brown', 'purple']:
@@ -122,17 +130,33 @@ def opponent_owns(active_player, players):
     utilities = ['utility']
     stations = ['station']
     site_owner_id = board.owner[pos]
-    site_owner = players[site_owner_id]
     site_group = board.groups[pos]
 
-    # ic(pos)
-    # ic(space_name)
-    # ic(bank)
-    # ic(site_owner_id)
-    # ic(site_owner.name)
-    # ic(site_group)
+    # site_owner = players[site_owner_id] # TODO does this preserve order?
+
+    # need to select the player class with ID == site_owner_id
+    for n in players:
+        if players[n].id == site_owner_id:
+            player_list_id = n
+    site_owner = players[player_list_id]  # TODO does this preserve order?
 
     if VERBOSE: print(f"{active_player.name} has landed on {space_name} owned by {site_owner.name}")
+    if active_player.name == site_owner.name:
+        # if active_player.id == board.owner[pos]:
+        ic(players[0].name, players[0].id)
+        ic(players[1].name, players[1].id)
+        ic(players[2].name, players[2].id)
+        ic(active_player.id)
+        ic(board.owner[pos])
+        ic(pos)
+        ic(space_name)
+        ic(bank)
+        ic(site_owner_id)
+        ic(site_owner.name)
+        ic(site_group)
+        input("## opponent_owns violation ###")
+
+
     if site_group in buildings:
         if site_owner.site_colours[site_group] < 3: # land rent only due
             rent = board.rents[pos][0]
@@ -145,18 +169,18 @@ def opponent_owns(active_player, players):
             elif no_houses > 0:
                 rent = board.rents[pos][no_houses]
                 if VERBOSE: print(f"Ouch, {active_player.name} owes £{rent} in rent, better pay up!")
-        if site_group in utilities:
-            if site_owner.site_colours[site_group] == 1:
-                rent = 4 * active_player.d1 + active_player.d2
-                if VERBOSE: print(f"Could be worse, {active_player.name} owes £{rent} in utilities.")
-            elif site_owner.site_colours[site_group] == 2:
-                rent = 10 * active_player.d1 + active_player.d2
-                if VERBOSE: print(f"Ouch, {active_player.name} owes £{rent} in utilities, time to cough up!")
-        if site_group in stations:
-                no_stations = site_owner.site_colours[site_group]
-                # factorial to get station rent
-                rent = factorial(25, no_stations)
-                if VERBOSE: print(f"{active_player.name} owes £{rent} in station fees.")
+    if site_group in utilities:
+        if site_owner.site_colours[site_group] == 1:
+            rent = 4 * (active_player.d1 + active_player.d2)
+            if VERBOSE: print(f"Could be worse, {active_player.name} owes £{rent} in utilities.")
+        elif site_owner.site_colours[site_group] == 2:
+            rent = 10 * (active_player.d1 + active_player.d2)
+            if VERBOSE: print(f"Ouch, {active_player.name} owes £{rent} in utilities, time to cough up!")
+    if site_group in stations:
+        no_stations = site_owner.site_colours[site_group]
+        # factorial to get station rent
+        rent = factorial(25, no_stations)
+        if VERBOSE: print(f"{active_player.name} owes £{rent} in station fees.")
 
         # debit ap, credit site owner
         active_player.balance -= rent
@@ -166,7 +190,7 @@ def opponent_owns(active_player, players):
             if VERBOSE: print(f"{active_player.name} is bankrupt and is out of the game :( ")
             active_player.BANKRUPT = True
             # game ends now? highest balance + assets wins?
-        input("#opponent_owns")
+    # input("#opponent_owns\n")
 
 # config
 no_players = 3
@@ -197,9 +221,10 @@ turn_order = random.sample(range(no_players),no_players)
 # ic(turn_order)
 
 # create a list of player objects, allocate names and meeples based on prior random lists
-players = list()
+players = {}
 for i in range(no_players):
-    players.append(player.Player(names[turn_order[i]], meeples_list[i]))
+    players[i] = player.Player(names[turn_order[i]], meeples_list[i])
+    # players.append(player.Player(names[turn_order[i]], meeples_list[i]))
     players[i].id = turn_order[i]
     # ic(players[i].name, players[i].meeple, players[i].id)
 
@@ -250,7 +275,7 @@ while game_active == True:
             if board.owner[pos] == 'none':                       # space not owned
                 if VERBOSE: print("space_not_owned()")
                 purchase_space(ap)
-            elif board.owner[pos] == ap.name:      # space owned by active player
+            elif board.owner[pos] == ap.id:      # space owned by active player
                 if VERBOSE: print("active_player_owns()")
             else:      # space owned by another player
                 if VERBOSE: print("opponent_owns()")
@@ -274,7 +299,7 @@ while game_active == True:
         ap.doubles_rolled = 0
         i = (i + 1) % no_players
 
-    if VERBOSE: print("check_game_active()")
+    # if VERBOSE: print("check_game_active()")
     if turn % 100 == 0:
         input("Game break")
 

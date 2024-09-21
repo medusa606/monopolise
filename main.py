@@ -135,10 +135,15 @@ def opponent_owns(active_player, players):
     # site_owner = players[site_owner_id] # TODO does this preserve order?
 
     # need to select the player class with ID == site_owner_id
+    player_list_id = -1
     for n in players:
+        ic(n)
+        ic(players[n].id)
+        ic(site_owner_id)
         if players[n].id == site_owner_id:
             player_list_id = n
-    site_owner = players[player_list_id]  # TODO does this preserve order?
+        site_owner = players[player_list_id]
+        a= 2
 
     if VERBOSE: print(f"{active_player.name} has landed on {space_name} owned by {site_owner.name}")
     if active_player.name == site_owner.name:
@@ -272,7 +277,7 @@ while game_active == True:
 
         # not special
         else:
-            if board.owner[pos] == 'none':                       # space not owned
+            if board.owner[pos] == '__':                       # space not owned
                 if VERBOSE: print("space_not_owned()")
                 purchase_space(ap)
             elif board.owner[pos] == ap.id:      # space owned by active player

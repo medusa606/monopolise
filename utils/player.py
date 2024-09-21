@@ -19,6 +19,7 @@ class Player:
     in_jail: bool = False
     remaining_sentence = 0
     chance_id = -1
+    cmchst_id = -1
     site_colours = dict(brown=0, blue=0, pink=0, orange=0, red=0, yellow=0, green=0, purple=0, station=0, utility=0)
     complete_set = dict(brown=False, blue=False, pink=False, orange=False, red=False, yellow=False, green=False, purple=False, station=False, utility=False)
     asset_value = 0

@@ -1,3 +1,4 @@
+from logging import raiseExceptions
 from threading import activeCount
 
 from fontTools.mtiLib import build
@@ -89,38 +90,37 @@ def purchase_space(active_player):
     # ic(active_player.complete_set[site_group])
     # ic(active_player.id)
 
-    if board.owner[pos] == 'none':
-        if VERBOSE: print(f"{active_player.name} with balance {bank} has option to buy {space_name} costing {site_cost}")
-        if bank >= site_cost:
-            if VERBOSE: print(f"{active_player.name} do you wish to purchase?")
-            # ans = random.sample(["Y", "N"], 1)
-            ans = "Y"
-            if ans[0] == "Y":
-                # purchase site, update board, debit balance
-                active_player.transaction(-site_cost)
-                active_player.no_sites += 1
-                board.owner[pos] = active_player.id
-                if VERBOSE: print(f"{active_player.name} is now the proud owner of {space_name}!")
-                # determine if ap holds set, update player class
-                active_player.site_colours[site_group] += 1
+    if VERBOSE: print(f"{active_player.name} with balance {bank} has option to buy {space_name} costing {site_cost}")
+    if bank >= site_cost:
+        if VERBOSE: print(f"{active_player.name} do you wish to purchase?")
+        # ans = random.sample(["Y", "N"], 1)
+        ans = "Y"
+        if ans[0] == "Y":
+            # purchase site, update board, debit balance
+            active_player.transaction(-site_cost)
+            active_player.no_sites += 1
+            board.owner[pos] = active_player.id
+            if VERBOSE: print(f"{active_player.name} is now the proud owner of {space_name}!")
+            # determine if ap holds set, update player class
+            active_player.site_colours[site_group] += 1
 
-                # ic("### check site has changed ownership ####")
-                # ic(board.owner[pos])
-                # ic(active_player.id)
-                # input("### puchase site ###")
+            # ic("### check site has changed ownership ####")
+            # ic(board.owner[pos])
+            # ic(active_player.id)
+            # input("### puchase site ###")
 
-                # check player holds set
-                if site_group in ['brown', 'purple']:
-                    if active_player.site_colours[site_group] == 2:
-                        active_player.complete_set[site_group] = True
-                        if VERBOSE: print(f"Look out, {active_player.name} holds a monopoly of {site_group} sites!")
-                if site_group in ['blue' ,'pink', 'orange', 'red','yellow', 'green']:
-                    if active_player.site_colours[site_group] == 3:
-                        active_player.complete_set[site_group] = True
-                        if VERBOSE: print(f"Look out, {active_player.name} holds a monopoly of {site_group} sites!")
+            # check player holds set
+            if site_group in ['brown', 'purple']:
+                if active_player.site_colours[site_group] == 2:
+                    active_player.complete_set[site_group] = True
+                    if VERBOSE: print(f"Look out, {active_player.name} holds a monopoly of {site_group} sites!")
+            if site_group in ['blue' ,'pink', 'orange', 'red','yellow', 'green']:
+                if active_player.site_colours[site_group] == 3:
+                    active_player.complete_set[site_group] = True
+                    if VERBOSE: print(f"Look out, {active_player.name} holds a monopoly of {site_group} sites!")
 
-            if ans[0] == "N":
-                if VERBOSE: print(f"{active_player.name} has chosen not to buy this dump, a wise move!")
+        if ans[0] == "N":
+            if VERBOSE: print(f"{active_player.name} has chosen not to buy this dump, a wise move!")
 
 def opponent_owns(active_player, players):
     pos = active_player.position
@@ -132,18 +132,15 @@ def opponent_owns(active_player, players):
     site_owner_id = board.owner[pos]
     site_group = board.groups[pos]
 
-    # site_owner = players[site_owner_id] # TODO does this preserve order?
-
     # need to select the player class with ID == site_owner_id
     player_list_id = -1
-    for n in players:
-        ic(n)
-        ic(players[n].id)
-        ic(site_owner_id)
-        if players[n].id == site_owner_id:
-            player_list_id = n
-        site_owner = players[player_list_id]
-        a= 2
+    for i,k in enumerate(players):
+        if players[i].id == site_owner_id:
+            player_list_id = i
+            break
+    if player_list_id == -1:
+        raise ValueError(f'id={site_owner_id}, site owner not found in list of owned  spaces')
+    site_owner = players[player_list_id]
 
     if VERBOSE: print(f"{active_player.name} has landed on {space_name} owned by {site_owner.name}")
     if active_player.name == site_owner.name:
@@ -160,7 +157,6 @@ def opponent_owns(active_player, players):
         ic(site_owner.name)
         ic(site_group)
         input("## opponent_owns violation ###")
-
 
     if site_group in buildings:
         if site_owner.site_colours[site_group] < 3: # land rent only due
@@ -205,7 +201,7 @@ assert no_players <= len(names), "Not enough player names given!"
 # print([len(name) for name in names])
 # assert len(names)<6, "Max 5 characters in player names"
 game_active = True
-VERBOSE = True                  #additional print statements
+VERBOSE = False                  #additional print statements
 
 # create a meeples order without repeat
 meeples = ['hat','dog', 'car','thimble', 'iron']
@@ -277,7 +273,7 @@ while game_active == True:
 
         # not special
         else:
-            if board.owner[pos] == '__':                       # space not owned
+            if board.owner[pos] == 'x':                       # space not owned
                 if VERBOSE: print("space_not_owned()")
                 purchase_space(ap)
             elif board.owner[pos] == ap.id:      # space owned by active player
